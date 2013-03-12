@@ -1,0 +1,9 @@
+3
+Dec(0,4)
+Inc(1)
+Inc(2)
+Goto(0)
+Dec(2,7)
+Inc(0)
+Goto(4)
+Inc(1)
