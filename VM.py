@@ -22,11 +22,11 @@
 import os, sys
 
 try:
-    import pypy
+    import rpython
 except:
     import sys
     sys.path.append(os.getenv("PYPY_SRC"))
-from pypy.rlib import jit
+from rpython.rlib import jit
 
 INSTR_INC = 0
 INSTR_DEC = 1
@@ -112,7 +112,7 @@ def entry_point(argv):
 
 
 def jitpolicy(driver):
-    from pypy.jit.codewriter.policy import JitPolicy
+    from rpython.jit.codewriter.policy import JitPolicy
     return JitPolicy()
 
 
