@@ -1,0 +1,29 @@
+============================================================================
+  Register VM
+============================================================================
+
+Execute the VM thus in normal Python:
+
+  python VM.py <file> [<arg1> ... <argn>]
+
+If you want to build an RPython VM, you will need to have downloaded PyPy
+from source:
+
+  hg clone https://bitbucket.org/pypy/pypy
+
+And then set the PYPY_SRC variable to wherever that directory is. e.g.:
+
+  cd ~/tmp
+  hg clone https://bitbucket.org/pypy/pypy
+  export PYPY_SRC=~/tmp/pypy
+
+then you can do a translation in the directory with the VM.py file:
+
+  python $PYPY_SRC/rpython/bin/rpython -Ojit --output=regvm VM.py
+
+[If you have the pypy binary installed, you will find the above command runs
+much faster if you replace "python" with "pypy".]
+
+Then you can run the version with a JIT:
+
+  ./regvm fact.rm 7
