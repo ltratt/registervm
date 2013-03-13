@@ -39,8 +39,7 @@ def loop(instrs, regs):
     pc = 0
     while pc < len(instrs):
         jitdriver.jit_merge_point(pc=pc, instrs=instrs, regs=regs)
-        #print pc, regs, instrs
-        instr = instrs[pc]
+        instr = get_instr(instrs, pc)
         if instr[0] == INSTR_INC:
             regs[instr[1]] += 1
             pc += 1
@@ -58,6 +57,12 @@ def loop(instrs, regs):
             if instr[1] < pc:
                 jitdriver.can_enter_jit(pc=pc, instrs=instrs, regs=regs)
             pc = instr[1]
+
+
+
+@jit.elidable_promote()
+def get_instr(instrs, pc):
+    return instrs[pc]
 
 
 
@@ -94,12 +99,11 @@ def entry_point(argv):
         type, params1 = l.split("(")
         params2 = [int(x) for x in params1[:-1].split(",")]
         if type == "Inc":
-            type2 = INSTR_INC
+            instrs.append((INSTR_INC, params2[0], 0),)
         elif type == "Dec":
-            type2 = INSTR_DEC
+            instrs.append((INSTR_DEC, params2[0], params2[1]),)
         else:
-            type2 = INSTR_GOTO
-        instrs.append([type2] + params2)
+            instrs.append((INSTR_GOTO, params2[0], 0),)
     loop(instrs, regs)
     print regs
     
