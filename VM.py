@@ -49,6 +49,10 @@ jitdriver = jit.JitDriver(greens=["pc", "instrs"], reds=["regs"], \
               get_printable_location=pp)
 
 
+#
+# Main VM loop
+#
+
 def loop(instrs, regs):
     pc = 0
     while pc < len(instrs):
@@ -84,6 +88,9 @@ def entry_point(argv):
     if len(argv) == 1:
         print "VM.py <file> [<arg1> ... <argn>]"
         return 1
+
+    # Parse the user's fie
+
     try:
         fd = os.open(argv[1], os.O_RDONLY, 0777)
         i = 0
@@ -99,15 +106,7 @@ def entry_point(argv):
 
     lines = "".join(d).split("\n")
     resultr = int(lines[0])
-    regs = [0] * resultr
-    i = 0
-    for r in argv[2:]:
-        try:
-            regs[i] = int(r)
-        except ValueError:
-            print "Command line argument '%s' not valid." % r
-            return 1
-        i += 1
+
     instrs = []
     for l in lines[1:]:
         type, params1 = l.split("(")
@@ -118,6 +117,21 @@ def entry_point(argv):
             instrs.append((INSTR_DEC, params2[0], params2[1]),)
         else:
             instrs.append((INSTR_GOTO, params2[0], 0),)
+
+    # Setup the registers
+
+    regs = [0] * resultr
+    i = 0
+    for r in argv[2:]:
+        try:
+            regs[i] = int(r)
+        except ValueError:
+            print "Command line argument '%s' not valid." % r
+            return 1
+        i += 1
+
+    # Run the program
+
     loop(instrs, regs)
     print regs
     
