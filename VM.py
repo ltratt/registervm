@@ -35,14 +35,14 @@ INSTR_GOTO = 2
 
 
 def pp(pc, instrs):
-    instr = get_instr(instrs, pc)
-    if instr[0] == INSTR_INC:
-        return "%d: Inc(%d)" % (pc, instr[1])
-    elif instr[0] == INSTR_DEC:
-        return "%d: Dec(%d, %d)" % (pc, instr[1], instr[2])
+    i0, i1, i2 = get_instr(instrs, pc)
+    if i0 == INSTR_INC:
+        return "%d: Inc(%d)" % (pc, i1)
+    elif i0 == INSTR_DEC:
+        return "%d: Dec(%d, %d)" % (pc, i1, i2)
     else:
-        assert instr[0] == INSTR_GOTO
-        return "%d: Goto(%d)" % (pc, instr[1])
+        assert i0 == INSTR_GOTO
+        return "%d: Goto(%d)" % (pc, i1)
 
 
 jitdriver = jit.JitDriver(greens=["pc", "instrs"], reds=["regs"], \
@@ -57,24 +57,24 @@ def loop(instrs, regs):
     pc = 0
     while pc < len(instrs):
         jitdriver.jit_merge_point(pc=pc, instrs=instrs, regs=regs)
-        instr = get_instr(instrs, pc)
-        if instr[0] == INSTR_INC:
-            regs[instr[1]] += 1
+        i0, i1, i2 = get_instr(instrs, pc)
+        if i0 == INSTR_INC:
+            regs[i1] += 1
             pc += 1
-        elif instr[0] == INSTR_DEC:
-            v = regs[instr[1]]
+        elif i0 == INSTR_DEC:
+            v = regs[i1]
             if v == 0:
-                if instr[2] < pc:
+                if i2 < pc:
                     jitdriver.can_enter_jit(pc=pc, instrs=instrs, regs=regs)
-                pc = instr[2]
+                pc = i2
             else:
-                regs[instr[1]] = v - 1
+                regs[i1] = v - 1
                 pc += 1
         else:
-            assert instr[0] == INSTR_GOTO
-            if instr[1] < pc:
+            assert i0 == INSTR_GOTO
+            if i1 < pc:
                 jitdriver.can_enter_jit(pc=pc, instrs=instrs, regs=regs)
-            pc = instr[1]
+            pc = i1
 
 
 
@@ -107,16 +107,19 @@ def entry_point(argv):
     lines = "".join(d).split("\n")
     resultr = int(lines[0])
 
-    instrs = []
-    for l in lines[1:]:
-        type, params1 = l.split("(")
+    instrs_len = len(lines) - 1
+    instrs = [None] * instrs_len
+    i = 0
+    while i < instrs_len:
+        type, params1 = lines[i + 1].split("(")
         params2 = [int(x) for x in params1[:-1].split(",")]
         if type == "Inc":
-            instrs.append((INSTR_INC, params2[0], 0),)
+            instrs[i] = [INSTR_INC, params2[0], 0]
         elif type == "Dec":
-            instrs.append((INSTR_DEC, params2[0], params2[1]),)
+            instrs[i] = [INSTR_DEC, params2[0], params2[1]]
         else:
-            instrs.append((INSTR_GOTO, params2[0], 0),)
+            instrs[i] = [INSTR_GOTO, params2[0], 0]
+        i += 1
 
     # Setup the registers
 
