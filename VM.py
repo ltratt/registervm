@@ -33,7 +33,21 @@ INSTR_DEC = 1
 INSTR_GOTO = 2
 
 
-jitdriver = jit.JitDriver(greens=["pc"], reds=["instrs", "regs"])
+
+def pp(pc, instrs):
+    instr = get_instr(instrs, pc)
+    if instr[0] == INSTR_INC:
+        return "%d: Inc(%d)" % (pc, instr[1])
+    elif instr[0] == INSTR_DEC:
+        return "%d: Dec(%d, %d)" % (pc, instr[1], instr[2])
+    else:
+        assert instr[0] == INSTR_GOTO
+        return "%d: Goto(%d)" % (pc, instr[1])
+
+
+jitdriver = jit.JitDriver(greens=["pc", "instrs"], reds=["regs"], \
+              get_printable_location=pp)
+
 
 def loop(instrs, regs):
     pc = 0
