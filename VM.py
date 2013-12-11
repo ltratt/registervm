@@ -54,9 +54,12 @@ jitdriver = jit.JitDriver(greens=["pc", "instrs"], reds=["regs"], \
 #
 
 def loop(instrs, regs):
-    pc = 0
+    old_pc = pc = 0
     while pc < len(instrs):
+        if pc < old_pc:
+            jitdriver.can_enter_jit(pc=pc, instrs=instrs, regs=regs)
         jitdriver.jit_merge_point(pc=pc, instrs=instrs, regs=regs)
+        old_pc = pc
         i0, i1, i2 = get_instr(instrs, pc)
         if i0 == INSTR_INC:
             regs[i1] += 1
@@ -64,16 +67,12 @@ def loop(instrs, regs):
         elif i0 == INSTR_DEC:
             v = regs[i1]
             if v == 0:
-                if i2 < pc:
-                    jitdriver.can_enter_jit(pc=pc, instrs=instrs, regs=regs)
                 pc = i2
             else:
                 regs[i1] = v - 1
                 pc += 1
         else:
             assert i0 == INSTR_GOTO
-            if i1 < pc:
-                jitdriver.can_enter_jit(pc=pc, instrs=instrs, regs=regs)
             pc = i1
 
 
@@ -155,3 +154,4 @@ def target(*args):
 
 if __name__ == "__main__":
     entry_point(sys.argv)
+
